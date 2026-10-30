@@ -1,48 +1,57 @@
 package com.example.floosy;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.LinkedHashMap;
-
-import java.math.BigDecimal;
 import java.util.List;
-import java.math.RoundingMode;
 
+@Service
 public class ExpenseService {
     static final List<String> CATEGORIES= List.of("اخرى","تسوق","فواتير","مواصلات","اكل");
     private final ExpenseRepository repository;
     private final ExpenseValidator validator;
 
-    public ExpenseService (ExpenseRepository repository, ExpenseValidator validator){
-        this.repository =  repository;
-        this.validator = validator;
+    public ExpenseService (ExpenseRepository Repo, ExpenseValidator Vali){
+        this.repository =  Repo;
+        this.validator = Vali;
     }
 
 
-    public void add(String description, BigDecimal amount, String category) {
-        validator.validate(description, amount, category);
-        repository.save(description.trim(), amount, category);
+    public Expense add(String description, long amountV, String catV) {
+        validator.validate(description, amountV, catV);
+        return repository.save(description.trim(), amountV, catV);
     }
 
     public List<Expense> all() {
         return repository.findAll();
     }
 
-    public BigDecimal total() {
-        return all().stream().map(Expense::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
+    public long total() {
+        long sum = 0;
+        for (Expense expense : all()) {
+            sum = sum + expense.amount();
+                                        }
+        return sum;    }
 
-    public Map<String, BigDecimal> totalsByCategory() {
-        var totals = new LinkedHashMap<String, BigDecimal>();
-        categories().forEach(category -> totals.put(category, BigDecimal.ZERO));
-        all().forEach(expense -> totals.merge(expense.category(), expense.amount(), BigDecimal::add));
-        return totals;
-    }
 
-    public int spentPercent(BigDecimal budget) {
-        return budget.signum() == 0 ? 0 : total().multiply(BigDecimal.valueOf(100)).divide(budget, 0, RoundingMode.HALF_UP).min(BigDecimal.valueOf(100)).intValue();
+    public Map<String, Long> totalsByCategory() {
+        Map<String, Long> totals = new HashMap<>();
+
+        for (String category : categories()) {
+            totals.put(category, 0L);        }
+
+        for (Expense expense : all()) {
+            String category = expense.category();
+            long amount = expense.amount();
+            long oldTotal = totals.getOrDefault(category, 0L);
+            totals.put(category, oldTotal + amount);
+        }
+        return totals;    }
+
+    public int spentPercent(long budget) {
+        return budget == 0 ? 0 : (int) Math.min(100, total() * 100L / budget);
     }
 
     public List<String> categories() {
@@ -51,9 +60,9 @@ public class ExpenseService {
 
     @PostConstruct
     void start() {
-        repository.save("فاتورة الإنترنت", BigDecimal.valueOf(450), "فواتير");
-        repository.save("غداء", BigDecimal.valueOf(220), "أكل");
-        repository.save("مواصلات العمل", BigDecimal.valueOf(150), "مواصلات");
+        repository.save("فاتورة الإنترنت", 450L, "فواتير");
+        repository.save("غداء", 220L, "أكل");
+        repository.save("مواصلات العمل", 150L, "مواصلات");
         System.out.println("ExpenseService initialized");
     }
 
@@ -70,9 +79,9 @@ public class ExpenseService {
 
 @Component
 class ExpenseValidator {
-    void validate(String description, BigDecimal amount, String category) {
+    void validate(String description, long amount, String category) {
         if (description == null || description.isBlank()) throw new IllegalArgumentException("اكتب وصف المصروف");
-        if (amount == null || amount.signum() <= 0)
+        if (amount <= 0)
             throw new IllegalArgumentException("المبلغ يجب أن يكون أكبر من صفر");
         if (!ExpenseService.CATEGORIES.contains(category)) throw new IllegalArgumentException("اختر التصنيف");
     }

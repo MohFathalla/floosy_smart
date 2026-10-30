@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Floosy</title>
+    <style>
+        :root {
+            --bg: #f5f6fa;
+            --card: #fff;
+            --ink: #172033;
+            --muted: #6d7585;
+            --brand: #5b4bdb;
+            --soft: #eeecff;
+            --line: #e6e8ef;
+            --green: #17854f;
+            --red: #c73d4d
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: Tahoma, Arial, sans-serif;
+            line-height: 1.6
+        }
+
+        main {
+            max-width: 1050px;
+            margin: auto;
+            padding: 24px 18px 50px
+        }
+
+        .top,
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .top {
+            margin-bottom: 38px
+        }
+
+        .logo {
+            font-size: 21px;
+            font-weight: 800
+        }
+
+        .logo span,
+        .number {
+            color: var(--brand)
+        }
+
+        .profile {
+            background: var(--soft);
+            color: var(--brand);
+            padding: 5px 12px;
+            border-radius: 18px;
+            font-size: 12px
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.1fr .9fr;
+            gap: 18px
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 20px
+        }
+
+        .summary h1 {
+            font-size: 42px;
+            margin: 4px 0
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .bar {
+            height: 9px;
+            background: #ececf4;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 16px 0
+        }
+
+        .bar i {
+            display: block;
+            height: 100%;
+            background: var(--brand)
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 18px
+        }
+
+        .stat {
+            background: var(--bg);
+            padding: 12px;
+            border-radius: 10px
+        }
+
+        .stat b {
+            display: block;
+            font-size: 18px
+        }
+
+        h2 {
+            font-size: 20px;
+            margin: 0 0 16px
+        }
+
+        form {
+            display: grid;
+            gap: 11px
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 700
+        }
+
+        input,
+        select,
+        button {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 11px;
+            font: inherit;
+            background: #fff
+        }
+
+        button {
+            background: var(--brand);
+            color: #fff;
+            border: 0;
+            font-weight: 700;
+            cursor: pointer
+        }
+
+        .message,
+        .error {
+            padding: 10px;
+            border-radius: 9px;
+            font-size: 13px;
+            margin-bottom: 12px
+        }
+
+        .message {
+            background: #e8f7ef;
+            color: var(--green)
+        }
+
+        .error {
+            background: #fff0f1;
+            color: var(--red)
+        }
+
+        .section {
+            margin-top: 18px
+        }
+
+        .table-wrap {
+            overflow: auto
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap
+        }
+
+        th,
+        td {
+            text-align: right;
+            padding: 12px;
+            border-bottom: 1px solid var(--line);
+            font-size: 13px
+        }
+
+        th {
+            color: var(--muted)
+        }
+
+        .amount {
+            font-weight: 700
+        }
+
+        @media(max-width:760px) {
+            .hero {
+                grid-template-columns: 1fr
+            }
+
+            .summary h1 {
+                font-size: 34px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <header class="top">
+            <div class="logo">Floo<span>sy</span></div><span class="profile">API: Connected</span>
+        </header>
+        <section class="hero">
+            <div class="card summary">
+                <span class="muted">إجمالي المصروفات</span>
+                <h1 id="total">0 EGP</h1>
+                <div class="row"><span class="muted">الميزانية 12000 EGP</span><b class="number" id="percent">0%</b>
+                </div>
+                <div class="bar"><i id="bar"></i></div>
+                <div class="stats" id="stats"></div>
+            </div>
+            <div class="card">
+                <h2>إضافة مصروف</h2>
+                <div id="message" hidden></div>
+                <form id="expenseForm"><label for="description">الوصف</label><input id="description" required
+                        placeholder="مثال: قهوة">
+                    <label for="amount">المبلغ</label><input id="amount" type="number" min="1" step="1" required>
+                    <label for="category">التصنيف</label><select id="category">
+                        <option>اخرى</option>
+                        <option>تسوق</option>
+                        <option>فواتير</option>
+                        <option>مواصلات</option>
+                        <option>اكل</option>
+                    </select>
+                    <button>حفظ المصروف</button>
+                </form>
+            </div>
+        </section>
+        <section class="card section">
+            <h2>سجل المصروفات</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الوصف</th>
+                            <th>التصنيف</th>
+                            <th>التاريخ</th>
+                            <th>المبلغ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenses"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+    <script>
+        const budget = 12000, currency = 'EGP';
+        const categories = ['اخرى', 'تسوق', 'فواتير', 'مواصلات', 'اكل'];
+        const money = value => `${value} ${currency}`;
+        const message = (text, error = false) => {const el = document.getElementById('message'); el.hidden = false; el.textContent = text; el.className = error ? 'error' : 'message'; setTimeout(() => el.hidden = true, 2500);};
+        function render(expenses) {
+            const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            const percent = Math.min(100, budget ? Math.floor(total * 100 / budget) : 0);
+            document.getElementById('total').textContent = money(total);
+            document.getElementById('percent').textContent = `${percent}%`;
+            document.getElementById('bar').style.width = `${percent}%`;
+            const totals = Object.fromEntries(categories.map(category => [category, 0]));
+            expenses.forEach(expense => totals[expense.category] = (totals[expense.category] || 0) + expense.amount);
+            document.getElementById('stats').innerHTML = categories.map(category => `<div class="stat"><span class="muted">${category}</span><b>${money(totals[category])}</b></div>`).join('');
+            document.getElementById('expenses').innerHTML = expenses.map(expense => `<tr><td>${expense.description}</td><td>${expense.category}</td><td>${expense.date}</td><td class="amount">${money(expense.amount)}</td></tr>`).join('');
+        }
+        async function loadExpenses() {const response = await fetch('/api/expenses'); if (!response.ok) throw new Error(); render(await response.json());}
+        document.getElementById('expenseForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const body = {description: document.getElementById('description').value, amount: Number(document.getElementById('amount').value), category: document.getElementById('category').value};
+            const response = await fetch('/api/expenses', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+            if (!response.ok) return message('راجع بيانات المصروف', true);
+            event.target.reset(); await loadExpenses(); message('تم حفظ المصروف');
+        });
+        loadExpenses().catch(() => message('تعذر الاتصال بالـ API', true));
+    </script>
+</body>
+
+</html>
